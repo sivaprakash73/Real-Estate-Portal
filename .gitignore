@@ -1,0 +1,22 @@
+# dependencies
+/node_modules
+
+# next.js
+/.next/
+/out/
+
+# runtime data store (materialized from lib/seed.js on first run)
+/data/
+
+# misc
+.DS_Store
+*.pem
+npm-debug.log*
+
+# env files
+.env*.local
+.env
+
+# local settings (keep .claude/skills committed)
+.claude/settings.json
+.claude/settings.local.json
