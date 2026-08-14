@@ -1,248 +1,186 @@
-import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
-import PropertyCard from '@/components/PropertyCard';
-import { listProperties, listAgents } from '@/lib/store';
-import { CITIES, PROPERTY_TYPES } from '@/lib/format';
+import Head from 'next/head';
+import LeadForm from '@/components/LeadForm';
+import MapView from '@/components/MapView';
+import { listProperties } from '@/lib/store';
+import { formatINRCompact, normalizeUnitStatus, unitCode, unitStatusMeta } from '@/lib/format';
 
 export async function getServerSideProps() {
-  const featured = listProperties({ featured: true, status: 'active' }).slice(0, 6);
-  const all = listProperties({});
-  const stats = {
-    listings: all.filter((p) => p.status === 'active').length,
-    cities: new Set(all.map((p) => p.city)).size,
-    agents: listAgents().length,
-  };
-  return { props: { featured, stats } };
+  const units = listProperties({ sort: 'price-asc' }).map((unit) => ({
+    ...unit,
+    status: normalizeUnitStatus(unit.status),
+  }));
+  return { props: { units } };
 }
 
-export default function Home({ featured, stats }) {
-  const router = useRouter();
-  const [search, setSearch] = useState({
-    listingType: 'sale',
-    city: '',
-    type: '',
-    maxPrice: '',
-  });
+const highlights = [
+  { icon: 'tree', value: '62%', label: 'Open green space' },
+  { icon: 'house-heart', value: '44', label: 'Limited residences' },
+  { icon: 'geo-alt', value: '12 min', label: 'From the IT corridor' },
+  { icon: 'shield-check', value: 'RERA', label: 'Approved project' },
+];
 
-  function submit(e) {
-    e.preventDefault();
-    const query = Object.fromEntries(
-      Object.entries(search).filter(([, v]) => v !== '')
-    );
-    router.push({ pathname: '/properties', query });
-  }
+export default function Home({ units }) {
+  const available = units.filter((u) => u.status === 'available');
+  const enquiryUnit = available[0] || units[0];
+  const heroImage = units.flatMap((u) => u.images || [])[0];
+  const gallery = [...new Set(units.flatMap((u) => u.images || []))].slice(0, 6);
+  const minPrice = Math.min(...units.map((u) => Number(u.price) || Infinity));
+  const whatsappText = encodeURIComponent('Hello, I would like to know more about Aurelia Greens and book a site visit.');
 
   return (
     <>
-      <section className="hero">
-        <div className="container">
-          <div className="row justify-content-center text-center mb-4">
-            <div className="col-lg-8">
-              <h1 className="display-5 fw-bold">Find a place you&apos;ll love to live</h1>
-              <p className="lead opacity-75">
-                Verified listings across {stats.cities} cities in South India —
-                buy, rent, or invest with trusted local agents.
-              </p>
-            </div>
-          </div>
+      <Head>
+        <title>Aurelia Greens | Plots & villas in Coimbatore</title>
+        <meta name="description" content="Explore Aurelia Greens, a premium plotted and villa community in Coimbatore. Check live availability, prices and book a site visit." />
+      </Head>
 
-          <div className="row justify-content-center">
-            <div className="col-lg-10">
-              <div className="card search-card shadow-lg border-0">
-                <div className="card-body p-4">
-                  <ul className="nav nav-pills mb-3">
-                    {[
-                      { value: 'sale', label: 'Buy' },
-                      { value: 'rent', label: 'Rent' },
-                    ].map((t) => (
-                      <li className="nav-item" key={t.value}>
-                        <button
-                          type="button"
-                          className={`nav-link ${
-                            search.listingType === t.value ? 'active btn-brand' : 'text-dark'
-                          }`}
-                          style={
-                            search.listingType === t.value
-                              ? { background: 'var(--brand)' }
-                              : undefined
-                          }
-                          onClick={() =>
-                            setSearch((s) => ({ ...s, listingType: t.value }))
-                          }
-                        >
-                          {t.label}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                  <form className="row g-2" onSubmit={submit}>
-                    <div className="col-md-4">
-                      <select
-                        className="form-select form-select-lg"
-                        value={search.city}
-                        onChange={(e) => setSearch((s) => ({ ...s, city: e.target.value }))}
-                      >
-                        <option value="">All Cities</option>
-                        {CITIES.map((c) => (
-                          <option key={c}>{c}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="col-md-3">
-                      <select
-                        className="form-select form-select-lg"
-                        value={search.type}
-                        onChange={(e) => setSearch((s) => ({ ...s, type: e.target.value }))}
-                      >
-                        <option value="">All Types</option>
-                        {PROPERTY_TYPES.map((t) => (
-                          <option key={t}>{t}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="col-md-3">
-                      <select
-                        className="form-select form-select-lg"
-                        value={search.maxPrice}
-                        onChange={(e) =>
-                          setSearch((s) => ({ ...s, maxPrice: e.target.value }))
-                        }
-                      >
-                        <option value="">Any Budget</option>
-                        {search.listingType === 'sale' ? (
-                          <>
-                            <option value={5000000}>Under ₹50 L</option>
-                            <option value={10000000}>Under ₹1 Cr</option>
-                            <option value={20000000}>Under ₹2 Cr</option>
-                            <option value={50000000}>Under ₹5 Cr</option>
-                          </>
-                        ) : (
-                          <>
-                            <option value={25000}>Under ₹25k/mo</option>
-                            <option value={50000}>Under ₹50k/mo</option>
-                            <option value={100000}>Under ₹1 L/mo</option>
-                            <option value={300000}>Under ₹3 L/mo</option>
-                          </>
-                        )}
-                      </select>
-                    </div>
-                    <div className="col-md-2 d-grid">
-                      <button className="btn btn-warning btn-lg fw-semibold">
-                        <i className="bi bi-search me-1" />
-                        Search
-                      </button>
-                    </div>
-                  </form>
-                </div>
+      <section
+        className="project-hero"
+        style={{ backgroundImage: `linear-gradient(90deg, rgba(17,36,30,.88) 0%, rgba(17,36,30,.62) 48%, rgba(17,36,30,.12) 100%), url('${heroImage || '/images/hero-bg.svg'}')` }}
+      >
+        <div className="container hero-inner">
+          <div className="hero-kicker"><span /> NOW OPEN FOR BOOKINGS</div>
+          <h1>A rare place to<br /><em>put down roots.</em></h1>
+          <p>A private collection of considered plots and villas, shaped by nature on Coimbatore&apos;s most promising growth corridor.</p>
+          <div className="d-flex flex-wrap gap-3">
+            <Link href="#units" className="btn btn-light btn-lg rounded-pill px-4">Explore availability <i className="bi bi-arrow-down-right ms-2" /></Link>
+            <Link href="#enquire" className="btn btn-outline-light btn-lg rounded-pill px-4">Book a private tour</Link>
+          </div>
+          <div className="hero-price"><small>RESIDENCES FROM</small><strong>{formatINRCompact(minPrice)}</strong><span>onwards</span></div>
+        </div>
+        <div className="hero-scroll">SCROLL TO DISCOVER <i className="bi bi-arrow-down" /></div>
+      </section>
+
+      <section className="highlight-strip">
+        <div className="container"><div className="row g-0">
+          {highlights.map((item) => (
+            <div className="col-6 col-lg-3" key={item.label}>
+              <div className="highlight-item"><i className={`bi bi-${item.icon}`} /><span><strong>{item.value}</strong><small>{item.label}</small></span></div>
+            </div>
+          ))}
+        </div></div>
+      </section>
+
+      <section id="overview" className="project-section overview-section">
+        <div className="container">
+          <div className="row g-5 align-items-center">
+            <div className="col-lg-6">
+              <div className="image-composition">
+                <img src={gallery[1] || heroImage} alt="Landscaped residences at Aurelia Greens" className="image-main" />
+                <img src={gallery[2] || heroImage} alt="Aurelia Greens outdoor spaces" className="image-inset" />
+                <span className="image-note"><strong>5.8</strong><small>ACRES OF<br />THOUGHTFUL LIVING</small></span>
+              </div>
+            </div>
+            <div className="col-lg-5 offset-lg-1">
+              <p className="eyebrow">THE PROJECT</p>
+              <h2 className="editorial-title">Room to breathe.<br /><em>Space to belong.</em></h2>
+              <p className="lead-copy">Aurelia Greens is designed around a simple belief: the finest homes make life feel more natural. Wide, tree-lined avenues, generous setbacks and a central garden create a community with space in all the right places.</p>
+              <p className="lead-copy">Choose a ready-to-build plot or an architect-designed villa, each with clear titles, future-ready infrastructure and a considered relationship with the landscape.</p>
+              <div className="detail-grid">
+                <span><small>PROJECT TYPE</small><strong>Plots & villas</strong></span>
+                <span><small>POSSESSION</small><strong>December 2027</strong></span>
+                <span><small>DEVELOPMENT</small><strong>5.8 acres</strong></span>
+                <span><small>UNITS</small><strong>44 residences</strong></span>
               </div>
             </div>
           </div>
-
-          <div className="row justify-content-center mt-4 text-center">
-            <div className="col-auto px-4">
-              <div className="fs-3 fw-bold">{stats.listings}+</div>
-              <div className="small opacity-75">Active Listings</div>
-            </div>
-            <div className="col-auto px-4 border-start border-light border-opacity-25">
-              <div className="fs-3 fw-bold">{stats.cities}</div>
-              <div className="small opacity-75">Cities</div>
-            </div>
-            <div className="col-auto px-4 border-start border-light border-opacity-25">
-              <div className="fs-3 fw-bold">{stats.agents}</div>
-              <div className="small opacity-75">Expert Agents</div>
-            </div>
-          </div>
         </div>
       </section>
 
-      <section className="container py-5">
-        <div className="d-flex justify-content-between align-items-end mb-4">
-          <div>
-            <h2 className="section-title mb-1">Featured Properties</h2>
-            <p className="text-secondary mb-0">Hand-picked homes across South India</p>
-          </div>
-          <Link href="/properties" className="btn btn-outline-brand">
-            View All
-            <i className="bi bi-arrow-right ms-2" />
-          </Link>
-        </div>
-        <div className="row g-4">
-          {featured.map((p) => (
-            <div className="col-md-6 col-lg-4" key={p.id}>
-              <PropertyCard property={p} />
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="bg-white py-5">
+      <section id="masterplan" className="project-section masterplan-section">
         <div className="container">
-          <h2 className="section-title text-center mb-2">Browse by City</h2>
-          <p className="text-secondary text-center mb-4">
-            Explore properties in the city you want to call home
-          </p>
-          <div className="d-flex flex-wrap justify-content-center gap-2">
-            {CITIES.map((c) => (
-              <Link
-                key={c}
-                href={{ pathname: '/properties', query: { city: c } }}
-                className="btn btn-outline-brand rounded-pill px-4"
-              >
-                <i className="bi bi-buildings me-2" />
-                {c}
-              </Link>
-            ))}
+          <div className="section-heading centered">
+            <p className="eyebrow">MASTERPLAN</p>
+            <h2 className="editorial-title">Find your place <em>in the green.</em></h2>
+            <p>Live inventory, updated by our sales team. Select a unit to view its details.</p>
+          </div>
+          <div className="masterplan-card">
+            <div className="plan-compass"><i className="bi bi-arrow-up" /><span>N</span></div>
+            <div className="plan-road road-top">12 M WIDE AVENUE</div>
+            <div className="plot-grid">
+              {units.slice(0, 12).map((unit) => {
+                const meta = unitStatusMeta(unit.status);
+                return (
+                  <Link href={`/properties/${unit.id}`} className={`plot-cell plot-${unit.status}`} key={unit.id} title={`${unitCode(unit)} · ${meta.label}`}>
+                    <span>{unitCode(unit)}</span><small>{unit.area.toLocaleString('en-IN')} sq.ft</small>
+                  </Link>
+                );
+              })}
+              <div className="plan-park"><i className="bi bi-tree-fill" /><strong>THE GROVE</strong><small>Central park & pavilion</small></div>
+            </div>
+            <div className="plan-road">18 M MAIN ROAD · GRAND ENTRANCE</div>
+          </div>
+          <div className="plan-legend">
+            {['available', 'reserved', 'sold'].map((status) => <span key={status}><i className={`legend-${status}`} />{unitStatusMeta(status).label}</span>)}
+            <small>Availability is indicative and subject to confirmation.</small>
           </div>
         </div>
       </section>
 
-      <section className="container py-5">
-        <div className="row g-4 text-center">
-          <div className="col-md-4">
-            <div className="feature-icon mb-3">
-              <i className="bi bi-patch-check" />
-            </div>
-            <h5 className="fw-bold">Verified Listings</h5>
-            <p className="text-secondary">
-              Every property is verified by our team — clear titles, real photos,
-              honest pricing.
-            </p>
+      <section id="units" className="project-section units-section">
+        <div className="container">
+          <div className="section-heading split-heading">
+            <div><p className="eyebrow">LIVE AVAILABILITY</p><h2 className="editorial-title">Choose a home<br /><em>that fits your life.</em></h2></div>
+            <p>Transparent pricing and real-time status, so you can explore with complete confidence.</p>
           </div>
-          <div className="col-md-4">
-            <div className="feature-icon mb-3">
-              <i className="bi bi-people" />
+          <div className="availability-card">
+            <div className="availability-head"><span>{available.length} units currently available</span><span>Price includes land and base specification</span></div>
+            <div className="table-responsive">
+              <table className="table unit-table mb-0">
+                <thead><tr><th>Unit</th><th>Type</th><th>Area</th><th>Facing</th><th>Price</th><th>Status</th><th /></tr></thead>
+                <tbody>
+                  {units.slice(0, 8).map((unit) => {
+                    const meta = unitStatusMeta(unit.status);
+                    return <tr key={unit.id}>
+                      <td><strong>{unitCode(unit)}</strong></td><td>{unit.type}</td><td>{unit.area.toLocaleString('en-IN')} sq.ft</td><td>{unit.id % 2 ? 'East' : 'North'}</td><td><strong>{formatINRCompact(unit.price)}</strong></td>
+                      <td><span className={`unit-status status-${unit.status}`}><i />{meta.label}</span></td>
+                      <td className="text-end"><Link href={`/properties/${unit.id}`} className="unit-link">View <i className="bi bi-arrow-up-right" /></Link></td>
+                    </tr>;
+                  })}
+                </tbody>
+              </table>
             </div>
-            <h5 className="fw-bold">Trusted Local Agents</h5>
-            <p className="text-secondary">
-              Work with experienced agents who know your neighbourhood inside out.
-            </p>
-          </div>
-          <div className="col-md-4">
-            <div className="feature-icon mb-3">
-              <i className="bi bi-calculator" />
-            </div>
-            <h5 className="fw-bold">Plan Your Loan</h5>
-            <p className="text-secondary">
-              Use our EMI calculator to understand exactly what your dream home
-              will cost each month.
-            </p>
+            <div className="availability-foot"><span>Need help choosing the right unit?</span><Link href="#enquire">Speak with an advisor <i className="bi bi-arrow-right" /></Link></div>
           </div>
         </div>
       </section>
 
-      <section className="bg-brand text-white py-5">
-        <div className="container text-center">
-          <h3 className="fw-bold mb-2">Wondering what your EMI would be?</h3>
-          <p className="opacity-75 mb-4">
-            Estimate your monthly payments with our free home loan calculator.
-          </p>
-          <Link href="/calculator" className="btn btn-warning btn-lg fw-semibold px-4">
-            <i className="bi bi-calculator me-2" />
-            Try the EMI Calculator
-          </Link>
+      {gallery.length > 0 && <section id="gallery" className="project-section gallery-section">
+        <div className="container-fluid px-lg-5">
+          <div className="section-heading centered"><p className="eyebrow">GALLERY</p><h2 className="editorial-title">Life, <em>beautifully framed.</em></h2></div>
+          <div className="project-gallery">
+            {gallery.map((image, index) => <figure key={image} className={`gallery-item gallery-${index + 1}`}><img src={image} alt={`Aurelia Greens gallery view ${index + 1}`} loading="lazy" /></figure>)}
+          </div>
         </div>
+      </section>}
+
+      <section id="location" className="project-section location-section">
+        <div className="container"><div className="row g-0 location-card">
+          <div className="col-lg-5 location-copy">
+            <p className="eyebrow">LOCATION</p><h2 className="editorial-title">Connected to everything.<br /><em>Away from the noise.</em></h2>
+            <p>Saravanampatti puts work, learning and everyday essentials within easy reach, while the community remains calm and green.</p>
+            <div className="location-list">
+              <span><strong>06 min</strong><small>Kumaraguru College</small></span><span><strong>12 min</strong><small>CHIL SEZ / IT corridor</small></span><span><strong>18 min</strong><small>Coimbatore airport</small></span><span><strong>20 min</strong><small>City centre</small></span>
+            </div>
+            <a href="https://maps.google.com/?q=11.0768,77.0064" target="_blank" rel="noreferrer" className="text-link">Get directions <i className="bi bi-arrow-up-right" /></a>
+          </div>
+          <div className="col-lg-7 location-map"><MapView markers={[{ lat: 11.0768, lng: 77.0064, popup: '<b>Aurelia Greens</b><br/>Saravanampatti, Coimbatore' }]} height={520} /></div>
+        </div></div>
       </section>
+
+      {enquiryUnit && <section id="enquire" className="project-section enquiry-section">
+        <div className="container"><div className="row g-5 align-items-start">
+          <div className="col-lg-5">
+            <p className="eyebrow">PRIVATE SITE VISIT</p><h2 className="editorial-title">Come experience<br /><em>Aurelia for yourself.</em></h2>
+            <p className="lead-copy">Share your details and our project advisor will call to confirm a convenient time. Visits are available every day from 9:00 AM to 6:00 PM.</p>
+            <div className="advisor-contact"><i className="bi bi-whatsapp" /><span><small>PREFER WHATSAPP?</small><strong>+91 98400 12345</strong></span><a href={`https://wa.me/919840012345?text=${whatsappText}`} target="_blank" rel="noreferrer">Start chat</a></div>
+          </div>
+          <div className="col-lg-6 offset-lg-1"><div className="enquiry-card"><h5>Book your visit</h5><p>Our advisor will confirm your appointment shortly.</p><LeadForm property={enquiryUnit} defaultInterest="site-visit" showDate compact /></div></div>
+        </div></div>
+      </section>}
+
+      <a href={`https://wa.me/919840012345?text=${whatsappText}`} className="whatsapp-float" target="_blank" rel="noreferrer" aria-label="Chat with Aurelia Greens on WhatsApp"><i className="bi bi-whatsapp" /><span>Chat with us</span></a>
     </>
   );
 }

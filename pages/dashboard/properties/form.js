@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import DashboardShell from '@/components/DashboardShell';
-import { CITIES, PROPERTY_TYPES } from '@/lib/format';
+import { CITIES, PROPERTY_TYPES, UNIT_STATUSES, normalizeUnitStatus } from '@/lib/format';
 
 const EMPTY = {
+  unitCode: '',
   title: '',
   description: '',
   type: 'Apartment',
@@ -22,17 +23,19 @@ const EMPTY = {
   imagesText: '',
   amenitiesText: '',
   featured: false,
+  status: 'available',
+  agentId: '',
 };
 
 export default function PropertyFormPage() {
   return (
     <DashboardShell active="listings">
-      {({ agent }) => <PropertyForm agent={agent} />}
+      {({ agent, agents }) => <PropertyForm agent={agent} agents={agents} />}
     </DashboardShell>
   );
 }
 
-function PropertyForm({ agent }) {
+function PropertyForm({ agent, agents }) {
   const router = useRouter();
   const editId = router.query.id ? Number(router.query.id) : null;
   const [form, setForm] = useState(EMPTY);
@@ -43,7 +46,7 @@ function PropertyForm({ agent }) {
   useEffect(() => {
     if (!router.isReady) return;
     if (!editId) {
-      setForm(EMPTY);
+      setForm({ ...EMPTY, agentId: agent.id });
       setLoading(false);
       return;
     }
@@ -54,6 +57,7 @@ function PropertyForm({ agent }) {
         if (!d.property) throw new Error('Property not found');
         const p = d.property;
         setForm({
+          unitCode: p.unitCode || '',
           title: p.title,
           description: p.description,
           type: p.type,
@@ -71,6 +75,8 @@ function PropertyForm({ agent }) {
           imagesText: (p.images || []).join('\n'),
           amenitiesText: (p.amenities || []).join(', '),
           featured: Boolean(p.featured),
+          status: normalizeUnitStatus(p.status),
+          agentId: p.agentId || agent.id,
         });
       })
       .catch((e) => setError(e.message))
@@ -87,6 +93,7 @@ function PropertyForm({ agent }) {
     setSaving(true);
     setError('');
     const payload = {
+      unitCode: form.unitCode,
       title: form.title,
       description: form.description,
       type: form.type,
@@ -110,7 +117,8 @@ function PropertyForm({ agent }) {
         .map((s) => s.trim())
         .filter(Boolean),
       featured: form.featured,
-      agentId: agent.id,
+      status: form.status,
+      agentId: Number(form.agentId || agent.id),
     };
     try {
       const res = await fetch(editId ? `/api/properties/${editId}` : '/api/properties', {
@@ -140,34 +148,57 @@ function PropertyForm({ agent }) {
       <div className="card-body p-4">
         <div className="d-flex justify-content-between align-items-center mb-4">
           <h6 className="fw-bold mb-0">
-            {editId ? 'Edit Property' : 'Add New Property'}
+            {editId ? 'Edit plot / unit' : 'Add plot / unit'}
           </h6>
           <Link href="/dashboard/properties" className="btn btn-outline-secondary btn-sm">
             <i className="bi bi-arrow-left me-1" />
-            Back to listings
+            Back to inventory
           </Link>
         </div>
 
         <form onSubmit={submit} className="row g-3">
-          <div className="col-12">
-            <label className="form-label small fw-semibold">Title *</label>
+          <div className="col-md-3">
+            <label className="form-label small fw-semibold">Unit code *</label>
+            <input className="form-control" required value={form.unitCode} onChange={set('unitCode')} placeholder="e.g. V-12" />
+          </div>
+          <div className="col-md-9">
+            <label className="form-label small fw-semibold">Unit title *</label>
             <input
               className="form-control"
               required
               value={form.title}
               onChange={set('title')}
-              placeholder="e.g. Sea-View 3BHK Apartment in Adyar"
+              placeholder="e.g. East-facing garden villa"
             />
           </div>
 
-          <div className="col-md-3">
+          <div className="col-md-4">
+            <label className="form-label small fw-semibold">Availability</label>
+            <select className="form-select" value={form.status} onChange={set('status')}>
+              {UNIT_STATUSES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+            </select>
+          </div>
+          <div className="col-md-4">
+            <label className="form-label small fw-semibold">Sales owner</label>
+            <select className="form-select" value={form.agentId} onChange={set('agentId')}>
+              {agents.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+            </select>
+          </div>
+          <div className="col-md-4">
+            <label className="form-label small fw-semibold">Category</label>
+            <select className="form-select" value={form.type} onChange={set('type')}>
+              {PROPERTY_TYPES.map((t) => <option key={t}>{t}</option>)}
+            </select>
+          </div>
+
+          <div className="col-md-3 d-none">
             <label className="form-label small fw-semibold">Listing *</label>
             <select className="form-select" value={form.listingType} onChange={set('listingType')}>
               <option value="sale">For Sale</option>
               <option value="rent">For Rent</option>
             </select>
           </div>
-          <div className="col-md-3">
+          <div className="col-md-3 d-none">
             <label className="form-label small fw-semibold">Type *</label>
             <select className="form-select" value={form.type} onChange={set('type')}>
               {PROPERTY_TYPES.map((t) => (
@@ -323,7 +354,7 @@ function PropertyForm({ agent }) {
               ) : editId ? (
                 'Save Changes'
               ) : (
-                'Create Listing'
+                'Create unit'
               )}
             </button>
             <Link href="/dashboard/properties" className="btn btn-outline-secondary">

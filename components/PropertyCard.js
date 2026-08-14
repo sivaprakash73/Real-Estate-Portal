@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { priceLabel, timeAgo, PLACEHOLDER_IMG } from '@/lib/format';
+import { priceLabel, timeAgo, PLACEHOLDER_IMG, normalizeUnitStatus, unitStatusMeta } from '@/lib/format';
 
 function onImgError(e) {
   if (e.currentTarget.src.endsWith(PLACEHOLDER_IMG)) return;
@@ -8,6 +8,8 @@ function onImgError(e) {
 
 export default function PropertyCard({ property }) {
   const p = property;
+  const status = normalizeUnitStatus(p.status);
+  const statusMeta = unitStatusMeta(status);
   return (
     <div className="card property-card h-100 shadow-sm">
       <Link href={`/properties/${p.id}`} className="text-decoration-none">
@@ -19,9 +21,7 @@ export default function PropertyCard({ property }) {
           >
             {p.listingType === 'rent' ? 'For Rent' : 'For Sale'}
           </span>
-          {p.status === 'sold' && (
-            <span className="badge badge-sold text-bg-danger">Sold</span>
-          )}
+          {status !== 'available' && <span className={`badge badge-sold text-bg-${statusMeta.badge}`}>{statusMeta.label}</span>}
           <img
             src={p.images[0] || PLACEHOLDER_IMG}
             alt={p.title}

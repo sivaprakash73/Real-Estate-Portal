@@ -6,7 +6,7 @@ import { LEAD_STATUSES, leadStatusMeta, timeAgo } from '@/lib/format';
 export default function DashboardLeads() {
   return (
     <DashboardShell active="leads">
-      {({ agent }) => <Leads agent={agent} />}
+      {({ agents }) => <Leads agents={agents} />}
     </DashboardShell>
   );
 }
@@ -17,7 +17,7 @@ const INTEREST_LABELS = {
   info: 'More info',
 };
 
-function Leads({ agent }) {
+function Leads({ agents }) {
   const [leads, setLeads] = useState(null);
   const [properties, setProperties] = useState([]);
   const [statusFilter, setStatusFilter] = useState('');
@@ -27,13 +27,13 @@ function Leads({ agent }) {
   const [busyId, setBusyId] = useState(null);
 
   const load = useCallback(() => {
-    fetch(`/api/leads?agentId=${agent.id}`)
+    fetch('/api/leads')
       .then((r) => r.json())
       .then((d) => setLeads(d.leads));
-    fetch(`/api/properties?agentId=${agent.id}`)
+    fetch('/api/properties')
       .then((r) => r.json())
       .then((d) => setProperties(d.properties));
-  }, [agent.id]);
+  }, []);
 
   useEffect(() => {
     setLeads(null);
@@ -61,6 +61,17 @@ function Leads({ agent }) {
     });
     setBusyId(null);
     setExpandedId(null);
+    load();
+  }
+
+  async function assign(lead, agentId) {
+    setBusyId(lead.id);
+    await fetch(`/api/leads/${lead.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ agentId: Number(agentId) }),
+    });
+    setBusyId(null);
     load();
   }
 
@@ -101,7 +112,7 @@ function Leads({ agent }) {
       <div className="card-body p-4">
         <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
           <h6 className="fw-bold mb-0">
-            Leads <span className="text-secondary fw-normal">({leads.length})</span>
+            Enquiries <span className="text-secondary fw-normal">({leads.length})</span>
           </h6>
           <div className="d-flex gap-2">
             <input
@@ -138,7 +149,7 @@ function Leads({ agent }) {
             <table className="table align-middle">
               <thead>
                 <tr className="text-secondary small text-uppercase">
-                  <th>Contact</th>
+                  <th>Contact / owner</th>
                   <th>Property</th>
                   <th>Interest</th>
                   <th>Status</th>
@@ -169,6 +180,16 @@ function Leads({ agent }) {
                               </>
                             )}
                           </div>
+                          <select
+                            className="form-select form-select-sm mt-2"
+                            style={{ width: 170 }}
+                            value={lead.agentId || ''}
+                            disabled={busyId === lead.id}
+                            onChange={(e) => assign(lead, e.target.value)}
+                            aria-label={`Sales owner for ${lead.name}`}
+                          >
+                            {agents.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                          </select>
                         </td>
                         <td style={{ maxWidth: 220 }}>
                           {prop ? (

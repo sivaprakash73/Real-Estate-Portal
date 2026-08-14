@@ -15,11 +15,11 @@ export default function App({ Component, pageProps }) {
   return (
     <>
       <Head>
-        <title>PrimeNest — Real Estate Portal</title>
+        <title>Aurelia Greens | Plots & villas</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta
           name="description"
-          content="Buy, sell and rent properties across South India. Verified listings, trusted agents, EMI calculator and more."
+          content="Explore Aurelia Greens, a premium plotted and villa community with live unit availability and private site-visit booking."
         />
       </Head>
       <Layout>

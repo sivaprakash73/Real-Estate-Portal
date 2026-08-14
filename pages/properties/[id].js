@@ -5,20 +5,22 @@ import LoanCalculator from '@/components/LoanCalculator';
 import LeadForm from '@/components/LeadForm';
 import PropertyCard from '@/components/PropertyCard';
 import { getProperty, getAgent, listProperties, incrementViews } from '@/lib/store';
-import { formatINR, priceLabel, formatDate, PLACEHOLDER_IMG } from '@/lib/format';
+import { formatINR, priceLabel, formatDate, PLACEHOLDER_IMG, normalizeUnitStatus, unitCode, unitStatusMeta } from '@/lib/format';
 
 export async function getServerSideProps({ params }) {
   const property = getProperty(params.id);
   if (!property) return { notFound: true };
   incrementViews(params.id);
   const agent = getAgent(property.agentId);
-  const similar = listProperties({ city: property.city, status: 'active' })
+  property.status = normalizeUnitStatus(property.status);
+  const similar = listProperties({ city: property.city, status: 'available' })
     .filter((p) => p.id !== property.id)
     .slice(0, 3);
   return { props: { property, agent, similar } };
 }
 
 export default function PropertyDetail({ property: p, agent, similar }) {
+  const statusMeta = unitStatusMeta(p.status);
   const pricePerSqft =
     p.listingType === 'sale' && p.area > 0 ? Math.round(p.price / p.area) : null;
 
@@ -45,9 +47,7 @@ export default function PropertyDetail({ property: p, agent, similar }) {
         <div>
           <h1 className="h3 fw-bold mb-1">
             {p.title}
-            {p.status === 'sold' && (
-              <span className="badge text-bg-danger ms-2 align-middle">Sold</span>
-            )}
+            <span className={`badge text-bg-${statusMeta.badge} ms-2 align-middle`}>{statusMeta.label}</span>
           </h1>
           <p className="text-secondary mb-0">
             <i className="bi bi-geo-alt me-1" />
@@ -55,6 +55,7 @@ export default function PropertyDetail({ property: p, agent, similar }) {
           </p>
         </div>
         <div className="text-end">
+          <div className="small text-secondary text-uppercase">{unitCode(p)}</div>
           <div className="fs-3 fw-bold text-brand">{priceLabel(p)}</div>
           <span
             className={`badge ${p.listingType === 'rent' ? 'text-bg-info' : 'text-bg-success'}`}
@@ -165,6 +166,14 @@ export default function PropertyDetail({ property: p, agent, similar }) {
                       <i className="bi bi-telephone me-2" />
                       {agent.phone}
                     </a>
+                    <a
+                      href={`https://wa.me/${agent.phone.replace(/\D/g, '')}?text=${encodeURIComponent(`Hello, I am interested in ${unitCode(p)} at Aurelia Greens.`)}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="btn btn-success btn-sm"
+                    >
+                      <i className="bi bi-whatsapp me-2" /> WhatsApp advisor
+                    </a>
                   </div>
                 </div>
               </div>
@@ -176,7 +185,7 @@ export default function PropertyDetail({ property: p, agent, similar }) {
                   <i className="bi bi-chat-left-text me-2 text-brand" />
                   Interested in this property?
                 </h6>
-                <LeadForm property={p} agent={agent} />
+                <LeadForm property={p} agent={agent} showDate />
               </div>
             </div>
           </div>

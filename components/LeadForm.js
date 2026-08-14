@@ -6,12 +6,13 @@ const INTERESTS = [
   { value: 'info', label: 'Ask for more information' },
 ];
 
-export default function LeadForm({ property, agent }) {
+export default function LeadForm({ property, agent, defaultInterest = 'site-visit', showDate = false, compact = false }) {
   const [form, setForm] = useState({
     name: '',
     phone: '',
     email: '',
-    interest: 'site-visit',
+    interest: defaultInterest,
+    visitDate: '',
     message: '',
   });
   const [state, setState] = useState('idle'); // idle | sending | done | error
@@ -54,9 +55,9 @@ export default function LeadForm({ property, agent }) {
   }
 
   return (
-    <form onSubmit={submit}>
-      <div className="mb-3">
-        <label className="form-label small fw-semibold">Your Name *</label>
+    <form onSubmit={submit} className={compact ? 'row g-3' : ''}>
+      <div className={compact ? 'col-md-6' : 'mb-3'}>
+        <label className="form-label small fw-semibold">Your name *</label>
         <input
           className="form-control"
           required
@@ -65,7 +66,7 @@ export default function LeadForm({ property, agent }) {
           placeholder="Full name"
         />
       </div>
-      <div className="mb-3">
+      <div className={compact ? 'col-md-6' : 'mb-3'}>
         <label className="form-label small fw-semibold">Phone *</label>
         <input
           className="form-control"
@@ -76,7 +77,7 @@ export default function LeadForm({ property, agent }) {
           placeholder="+91 XXXXX XXXXX"
         />
       </div>
-      <div className="mb-3">
+      <div className={compact ? 'col-md-6' : 'mb-3'}>
         <label className="form-label small fw-semibold">Email</label>
         <input
           className="form-control"
@@ -86,7 +87,7 @@ export default function LeadForm({ property, agent }) {
           placeholder="you@example.com"
         />
       </div>
-      <div className="mb-3">
+      <div className={compact ? 'col-md-6' : 'mb-3'}>
         <label className="form-label small fw-semibold">I want to…</label>
         <select className="form-select" value={form.interest} onChange={set('interest')}>
           {INTERESTS.map((i) => (
@@ -96,7 +97,19 @@ export default function LeadForm({ property, agent }) {
           ))}
         </select>
       </div>
-      <div className="mb-3">
+      {showDate && (
+        <div className={compact ? 'col-md-6' : 'mb-3'}>
+          <label className="form-label small fw-semibold">Preferred visit date</label>
+          <input
+            className="form-control"
+            type="date"
+            min={new Date().toISOString().slice(0, 10)}
+            value={form.visitDate}
+            onChange={set('visitDate')}
+          />
+        </div>
+      )}
+      <div className={compact ? 'col-12' : 'mb-3'}>
         <label className="form-label small fw-semibold">Message</label>
         <textarea
           className="form-control"
@@ -107,10 +120,10 @@ export default function LeadForm({ property, agent }) {
         />
       </div>
       {state === 'error' && (
-        <div className="alert alert-danger py-2 small">{error}</div>
+        <div className={`alert alert-danger py-2 small ${compact ? 'col-12 mb-0' : ''}`}>{error}</div>
       )}
       <button
-        className="btn btn-brand w-100 fw-semibold"
+        className={`btn btn-brand fw-semibold ${compact ? 'col-auto ms-2 px-4 rounded-pill' : 'w-100'}`}
         disabled={state === 'sending'}
       >
         {state === 'sending' ? (
@@ -121,7 +134,7 @@ export default function LeadForm({ property, agent }) {
         ) : (
           <>
             <i className="bi bi-send me-2" />
-            Contact Agent
+            {showDate ? 'Request site visit' : 'Send enquiry'}
           </>
         )}
       </button>

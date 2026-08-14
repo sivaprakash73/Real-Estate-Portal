@@ -1,171 +1,55 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import DashboardShell from '@/components/DashboardShell';
-import { priceLabel, formatDate, PLACEHOLDER_IMG } from '@/lib/format';
+import { formatINRCompact, normalizeUnitStatus, UNIT_STATUSES, unitCode, unitStatusMeta } from '@/lib/format';
 
 export default function DashboardProperties() {
-  return (
-    <DashboardShell active="listings">
-      {({ agent }) => <Listings agent={agent} />}
-    </DashboardShell>
-  );
+  return <DashboardShell active="listings">{({ agents }) => <Inventory agents={agents} />}</DashboardShell>;
 }
 
-function Listings({ agent }) {
-  const [properties, setProperties] = useState(null);
-  const [leads, setLeads] = useState([]);
+function Inventory({ agents }) {
+  const [units, setUnits] = useState(null);
+  const [search, setSearch] = useState('');
+  const [status, setStatus] = useState('');
   const [busyId, setBusyId] = useState(null);
+  const load = useCallback(() => fetch('/api/properties').then((r) => r.json()).then((d) => setUnits((d.properties || []).map((u) => ({ ...u, status: normalizeUnitStatus(u.status) })))), []);
+  useEffect(() => { load(); }, [load]);
 
-  const load = useCallback(() => {
-    fetch(`/api/properties?agentId=${agent.id}`)
-      .then((r) => r.json())
-      .then((d) => setProperties(d.properties));
-    fetch(`/api/leads?agentId=${agent.id}`)
-      .then((r) => r.json())
-      .then((d) => setLeads(d.leads));
-  }, [agent.id]);
-
-  useEffect(() => {
-    setProperties(null);
-    load();
-  }, [load]);
-
-  async function toggleStatus(p) {
-    setBusyId(p.id);
-    await fetch(`/api/properties/${p.id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: p.status === 'active' ? 'sold' : 'active' }),
-    });
-    setBusyId(null);
-    load();
+  async function update(unit, patch) {
+    setBusyId(unit.id);
+    await fetch(`/api/properties/${unit.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patch) });
+    setBusyId(null); load();
   }
-
-  async function remove(p) {
-    if (!window.confirm(`Delete "${p.title}"? This cannot be undone.`)) return;
-    setBusyId(p.id);
-    await fetch(`/api/properties/${p.id}`, { method: 'DELETE' });
-    setBusyId(null);
-    load();
+  async function remove(unit) {
+    if (!window.confirm(`Delete ${unitCode(unit)}? This cannot be undone.`)) return;
+    setBusyId(unit.id); await fetch(`/api/properties/${unit.id}`, { method: 'DELETE' }); setBusyId(null); load();
   }
+  const visible = useMemo(() => (units || []).filter((u) => {
+    if (status && u.status !== status) return false;
+    return `${unitCode(u)} ${u.title} ${u.type} ${u.locality}`.toLowerCase().includes(search.toLowerCase());
+  }), [units, search, status]);
+  const agentById = Object.fromEntries(agents.map((a) => [a.id, a]));
 
-  if (!properties) {
-    return (
-      <div className="text-center py-5">
-        <div className="spinner-border text-brand" role="status" />
-      </div>
-    );
-  }
-
-  const leadCount = (propertyId) =>
-    leads.filter((l) => l.propertyId === propertyId).length;
-
-  return (
-    <div className="card border-0 shadow-sm">
-      <div className="card-body p-4">
-        <div className="d-flex justify-content-between align-items-center mb-3">
-          <h6 className="fw-bold mb-0">
-            My Listings <span className="text-secondary fw-normal">({properties.length})</span>
-          </h6>
-          <Link href="/dashboard/properties/form" className="btn btn-brand btn-sm">
-            <i className="bi bi-plus-lg me-1" />
-            Add Property
-          </Link>
-        </div>
-
-        {properties.length === 0 ? (
-          <p className="text-secondary mb-0">
-            You have no listings yet. Click “Add Property” to create your first one.
-          </p>
-        ) : (
-          <div className="table-responsive">
-            <table className="table align-middle">
-              <thead>
-                <tr className="text-secondary small text-uppercase">
-                  <th>Property</th>
-                  <th>Price</th>
-                  <th>Status</th>
-                  <th className="text-center">Views</th>
-                  <th className="text-center">Leads</th>
-                  <th>Listed</th>
-                  <th className="text-end">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {properties.map((p) => (
-                  <tr key={p.id}>
-                    <td style={{ minWidth: 240 }}>
-                      <div className="d-flex gap-2 align-items-center">
-                        <img
-                          src={p.images[0] || PLACEHOLDER_IMG}
-                          alt={p.title}
-                          className="rounded"
-                          style={{ width: 56, height: 42, objectFit: 'cover' }}
-                          onError={(e) => {
-                            e.currentTarget.src = PLACEHOLDER_IMG;
-                          }}
-                        />
-                        <div className="min-w-0">
-                          <Link
-                            href={`/properties/${p.id}`}
-                            className="fw-semibold small text-decoration-none text-dark d-block text-truncate"
-                            style={{ maxWidth: 260 }}
-                          >
-                            {p.title}
-                          </Link>
-                          <span className="text-secondary small">
-                            {p.locality}, {p.city}
-                          </span>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="fw-semibold">{priceLabel(p)}</td>
-                    <td>
-                      <span
-                        className={`badge fw-normal ${
-                          p.status === 'active' ? 'text-bg-success' : 'text-bg-danger'
-                        }`}
-                      >
-                        {p.status === 'active' ? 'Active' : 'Sold'}
-                      </span>
-                    </td>
-                    <td className="text-center">{p.views}</td>
-                    <td className="text-center">{leadCount(p.id)}</td>
-                    <td className="text-secondary small">{formatDate(p.createdAt)}</td>
-                    <td className="text-end" style={{ minWidth: 150 }}>
-                      <div className="btn-group btn-group-sm">
-                        <Link
-                          href={`/dashboard/properties/form?id=${p.id}`}
-                          className="btn btn-outline-secondary"
-                          title="Edit"
-                        >
-                          <i className="bi bi-pencil" />
-                        </Link>
-                        <button
-                          className="btn btn-outline-secondary"
-                          title={p.status === 'active' ? 'Mark as sold' : 'Mark as active'}
-                          disabled={busyId === p.id}
-                          onClick={() => toggleStatus(p)}
-                        >
-                          <i className={`bi bi-${p.status === 'active' ? 'bag-check' : 'arrow-counterclockwise'}`} />
-                        </button>
-                        <button
-                          className="btn btn-outline-danger"
-                          title="Delete"
-                          disabled={busyId === p.id}
-                          onClick={() => remove(p)}
-                        >
-                          <i className="bi bi-trash" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+  if (!units) return <div className="text-center py-5"><div className="spinner-border text-brand" /></div>;
+  return <>
+    <div className="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+      <div><h2 className="h5 fw-bold mb-1">Project inventory</h2><p className="small text-secondary mb-0">Manage pricing, ownership and live availability for every unit.</p></div>
+      <Link href="/dashboard/properties/form" className="btn btn-brand btn-sm"><i className="bi bi-plus-lg me-1" /> Add plot / unit</Link>
     </div>
-  );
+    <div className="row g-3 mb-3">{UNIT_STATUSES.map((s) => <div className="col-4" key={s.value}><button className={`card w-100 text-start ${status === s.value ? 'border-brand' : ''}`} onClick={() => setStatus(status === s.value ? '' : s.value)}><div className="card-body py-3"><div className="d-flex justify-content-between align-items-center"><span className={`unit-status status-${s.value}`}><i />{s.label}</span><strong className="h4 mb-0">{units.filter((u) => u.status === s.value).length}</strong></div></div></button></div>)}</div>
+    <div className="card"><div className="card-body p-0">
+      <div className="p-3 border-bottom d-flex flex-wrap justify-content-between gap-2"><div className="input-group input-group-sm" style={{ maxWidth: 320 }}><span className="input-group-text bg-white"><i className="bi bi-search" /></span><input className="form-control border-start-0" placeholder="Search unit, type or location" value={search} onChange={(e) => setSearch(e.target.value)} /></div><span className="small text-secondary align-self-center">Showing {visible.length} of {units.length} units</span></div>
+      <div className="table-responsive"><table className="table align-middle mb-0"><thead><tr className="small text-secondary"><th className="ps-4">Unit</th><th>Type & area</th><th>Price</th><th>Status</th><th>Sales owner</th><th>Visibility</th><th className="text-end pe-4">Actions</th></tr></thead><tbody>
+        {visible.map((unit) => { const meta = unitStatusMeta(unit.status); return <tr key={unit.id}>
+          <td className="ps-4"><strong>{unitCode(unit)}</strong><div className="text-secondary text-truncate" style={{ fontSize: '.67rem', maxWidth: 230 }}>{unit.title}</div></td>
+          <td><span className="small">{unit.type}</span><div className="text-secondary" style={{ fontSize: '.67rem' }}>{unit.area.toLocaleString('en-IN')} sq.ft</div></td><td><strong className="small">{formatINRCompact(unit.price)}</strong></td>
+          <td><select className={`form-select form-select-sm border-${meta.badge}`} style={{ width: 120 }} value={unit.status} disabled={busyId === unit.id} onChange={(e) => update(unit, { status: e.target.value })}>{UNIT_STATUSES.map((s) => <option value={s.value} key={s.value}>{s.label}</option>)}</select></td>
+          <td><select className="form-select form-select-sm" style={{ width: 155 }} value={unit.agentId || ''} disabled={busyId === unit.id} onChange={(e) => update(unit, { agentId: Number(e.target.value) })}>{agents.map((a) => <option value={a.id} key={a.id}>{a.name}</option>)}</select><span className="visually-hidden">{agentById[unit.agentId]?.name}</span></td>
+          <td><button className={`btn btn-sm ${unit.featured ? 'btn-success' : 'btn-outline-secondary'}`} title="Toggle featured" onClick={() => update(unit, { featured: !unit.featured })}><i className={`bi bi-${unit.featured ? 'eye' : 'eye-slash'}`} /></button></td>
+          <td className="text-end pe-4"><div className="btn-group btn-group-sm"><Link href={`/properties/${unit.id}`} className="btn btn-outline-secondary" title="View public page"><i className="bi bi-box-arrow-up-right" /></Link><Link href={`/dashboard/properties/form?id=${unit.id}`} className="btn btn-outline-secondary" title="Edit"><i className="bi bi-pencil" /></Link><button className="btn btn-outline-danger" title="Delete" disabled={busyId === unit.id} onClick={() => remove(unit)}><i className="bi bi-trash" /></button></div></td>
+        </tr>; })}
+      </tbody></table></div>
+      {!visible.length && <div className="text-center py-5 text-secondary"><i className="bi bi-search fs-3 d-block mb-2" />No units match these filters.</div>}
+    </div></div>
+  </>;
 }
