@@ -43,6 +43,13 @@ The dashboard in this repository is a demo and has no sign-in. Before making
 the site public, add authentication and restrict both `/dashboard` and
 `/api/backup` to administrators.
 
+## Static JSON demo
+
+Visit `/demo` for a database-free example page. Its content comes from
+`content/demo-listings.json` at build time, so you can change the sample
+listings without touching React code. Run `npm run build` after editing the
+JSON file to publish those changes as static HTML.
+
 ## Structure
 
 ```

@@ -1,0 +1,36 @@
+{
+  "title": "Sample properties",
+  "intro": "A small static collection for presentations, client previews and local demos.",
+  "listings": [
+    {
+      "id": "demo-villa",
+      "title": "Contemporary family villa",
+      "type": "Independent villa",
+      "location": "Coimbatore",
+      "price": "₹ 72 Lakhs",
+      "area": "1,850 sq.ft",
+      "features": "3 bed · 3 bath · Ready to move",
+      "image": "/images/hero-bg.svg"
+    },
+    {
+      "id": "demo-plot",
+      "title": "East-facing residential plot",
+      "type": "Residential plot",
+      "location": "Saravanampatti, Coimbatore",
+      "price": "₹ 34 Lakhs",
+      "area": "1,440 sq.ft",
+      "features": "Clear title · Gated layout · 30 ft road",
+      "image": "/images/hero-bg.svg"
+    },
+    {
+      "id": "demo-apartment",
+      "title": "Light-filled city apartment",
+      "type": "Apartment",
+      "location": "Peelamedu, Coimbatore",
+      "price": "₹ 48 Lakhs",
+      "area": "1,120 sq.ft",
+      "features": "2 bed · 2 bath · Covered parking",
+      "image": "/images/hero-bg.svg"
+    }
+  ]
+}
