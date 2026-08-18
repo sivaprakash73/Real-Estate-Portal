@@ -2,11 +2,11 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 
 const NAV_LINKS = [
-  { href: '/#overview', label: 'Project' },
-  { href: '/#masterplan', label: 'Masterplan' },
-  { href: '/#units', label: 'Availability' },
-  { href: '/#gallery', label: 'Gallery' },
-  { href: '/#location', label: 'Location' },
+  { href: '/', label: 'Home' },
+  { href: '/about', label: 'About' },
+  { href: '/services', label: 'Services' },
+  { href: '/properties', label: 'Properties' },
+  { href: '/contact', label: 'Contact' },
 ];
 
 export default function Layout({ children }) {
@@ -20,8 +20,8 @@ export default function Layout({ children }) {
       <nav className="navbar navbar-expand-lg public-nav sticky-top">
         <div className="container">
           <Link href="/" className="navbar-brand project-brand">
-            <span className="brand-symbol"><i className="bi bi-tree" /></span>
-            <span><strong>Aurelia Greens</strong><small>VILLAS & RESIDENCES</small></span>
+            <span className="brand-symbol"><i className="bi bi-house-heart" /></span>
+            <span><strong>Vetrivelan Realty</strong><small>PROPERTY CONSULTANTS</small></span>
           </Link>
           <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-label="Toggle navigation">
             <span className="navbar-toggler-icon" />
@@ -34,7 +34,7 @@ export default function Layout({ children }) {
                 </li>
               ))}
               <li className="nav-item ms-lg-2 mt-2 mt-lg-0">
-                <Link href="/#enquire" className="btn btn-brand btn-sm rounded-pill px-3">Book a site visit</Link>
+                <Link href="/contact" className="btn btn-brand btn-sm rounded-pill px-3">Talk to us</Link>
               </li>
               <li className="nav-item">
                 <Link href="/dashboard" className="nav-link admin-entry" title="Admin dashboard"><i className="bi bi-person-lock" /></Link>
@@ -51,26 +51,26 @@ export default function Layout({ children }) {
           <div className="row g-4 align-items-start">
             <div className="col-lg-5">
               <div className="project-brand text-white mb-3">
-                <span className="brand-symbol"><i className="bi bi-tree" /></span>
-                <span><strong>Aurelia Greens</strong><small>VILLAS & RESIDENCES</small></span>
+                <span className="brand-symbol"><i className="bi bi-house-heart" /></span>
+                <span><strong>Vetrivelan Realty</strong><small>PROPERTY CONSULTANTS</small></span>
               </div>
-              <p className="footer-copy">A thoughtfully planned residential community where considered architecture, open landscapes and everyday ease come together.</p>
+              <p className="footer-copy">Clear guidance and thoughtfully chosen properties for every step of your real-estate journey.</p>
             </div>
             <div className="col-6 col-lg-2">
               <h6>Explore</h6>
-              <Link href="/#overview">Project</Link><Link href="/#units">Available units</Link><Link href="/#gallery">Gallery</Link>
+              <Link href="/about">About us</Link><Link href="/services">Our services</Link><Link href="/properties">Properties</Link>
             </div>
             <div className="col-6 col-lg-2">
-              <h6>Visit</h6>
-              <Link href="/#location">Location</Link><Link href="/#enquire">Book a tour</Link><a href="tel:+919840012345">Call sales</a>
+              <h6>Connect</h6>
+              <Link href="/contact">Contact us</Link><Link href="/properties">Browse listings</Link><Link href="/calculator">Loan calculator</Link>
             </div>
             <div className="col-lg-3">
-              <h6>Sales lounge</h6>
-              <p className="mb-1">Saravanampatti, Coimbatore</p>
-              <a href="mailto:hello@aureliagreens.in">hello@aureliagreens.in</a>
+              <h6>Service area</h6>
+              <p className="mb-1">Tamil Nadu, India</p>
+              <Link href="/contact">Start a conversation</Link>
             </div>
           </div>
-          <div className="footer-base"><span>© {new Date().getFullYear()} Aurelia Greens</span><span>RERA No. TN/11/Building/0421/2026</span></div>
+          <div className="footer-base"><span>© {new Date().getFullYear()} Vetrivelan Realty</span><span>Property guidance made simple</span></div>
         </div>
       </footer>
     </div>

@@ -26,13 +26,12 @@ export default function Home({ units }) {
   const heroImage = units.flatMap((u) => u.images || [])[0];
   const gallery = [...new Set(units.flatMap((u) => u.images || []))].slice(0, 6);
   const minPrice = Math.min(...units.map((u) => Number(u.price) || Infinity));
-  const whatsappText = encodeURIComponent('Hello, I would like to know more about Aurelia Greens and book a site visit.');
 
   return (
     <>
       <Head>
-        <title>Aurelia Greens | Plots & villas in Coimbatore</title>
-        <meta name="description" content="Explore Aurelia Greens, a premium plotted and villa community in Coimbatore. Check live availability, prices and book a site visit." />
+        <title>Vetrivelan Realty | Properties in Coimbatore</title>
+        <meta name="description" content="Explore Vetrivelan Realty listings, check availability and arrange a private property visit." />
       </Head>
 
       <section
@@ -67,15 +66,15 @@ export default function Home({ units }) {
           <div className="row g-5 align-items-center">
             <div className="col-lg-6">
               <div className="image-composition">
-                <img src={gallery[1] || heroImage} alt="Landscaped residences at Aurelia Greens" className="image-main" />
-                <img src={gallery[2] || heroImage} alt="Aurelia Greens outdoor spaces" className="image-inset" />
+                <img src={gallery[1] || heroImage} alt="Vetrivelan Realty featured residence" className="image-main" />
+                <img src={gallery[2] || heroImage} alt="Vetrivelan Realty outdoor spaces" className="image-inset" />
                 <span className="image-note"><strong>5.8</strong><small>ACRES OF<br />THOUGHTFUL LIVING</small></span>
               </div>
             </div>
             <div className="col-lg-5 offset-lg-1">
               <p className="eyebrow">THE PROJECT</p>
               <h2 className="editorial-title">Room to breathe.<br /><em>Space to belong.</em></h2>
-              <p className="lead-copy">Aurelia Greens is designed around a simple belief: the finest homes make life feel more natural. Wide, tree-lined avenues, generous setbacks and a central garden create a community with space in all the right places.</p>
+              <p className="lead-copy">Vetrivelan Realty is built around a simple belief: choosing a property should feel clear and considered. We help you explore well-connected homes and plots with the right guidance at every step.</p>
               <p className="lead-copy">Choose a ready-to-build plot or an architect-designed villa, each with clear titles, future-ready infrastructure and a considered relationship with the landscape.</p>
               <div className="detail-grid">
                 <span><small>PROJECT TYPE</small><strong>Plots & villas</strong></span>
@@ -150,7 +149,7 @@ export default function Home({ units }) {
         <div className="container-fluid px-lg-5">
           <div className="section-heading centered"><p className="eyebrow">GALLERY</p><h2 className="editorial-title">Life, <em>beautifully framed.</em></h2></div>
           <div className="project-gallery">
-            {gallery.map((image, index) => <figure key={image} className={`gallery-item gallery-${index + 1}`}><img src={image} alt={`Aurelia Greens gallery view ${index + 1}`} loading="lazy" /></figure>)}
+            {gallery.map((image, index) => <figure key={image} className={`gallery-item gallery-${index + 1}`}><img src={image} alt={`Vetrivelan Realty gallery view ${index + 1}`} loading="lazy" /></figure>)}
           </div>
         </div>
       </section>}
@@ -165,22 +164,22 @@ export default function Home({ units }) {
             </div>
             <a href="https://maps.google.com/?q=11.0768,77.0064" target="_blank" rel="noreferrer" className="text-link">Get directions <i className="bi bi-arrow-up-right" /></a>
           </div>
-          <div className="col-lg-7 location-map"><MapView markers={[{ lat: 11.0768, lng: 77.0064, popup: '<b>Aurelia Greens</b><br/>Saravanampatti, Coimbatore' }]} height={520} /></div>
+          <div className="col-lg-7 location-map"><MapView markers={[{ lat: 11.0768, lng: 77.0064, popup: '<b>Vetrivelan Realty</b><br/>Saravanampatti, Coimbatore' }]} height={520} /></div>
         </div></div>
       </section>
 
       {enquiryUnit && <section id="enquire" className="project-section enquiry-section">
         <div className="container"><div className="row g-5 align-items-start">
           <div className="col-lg-5">
-            <p className="eyebrow">PRIVATE SITE VISIT</p><h2 className="editorial-title">Come experience<br /><em>Aurelia for yourself.</em></h2>
+            <p className="eyebrow">PRIVATE SITE VISIT</p><h2 className="editorial-title">Find a place<br /><em>that feels right.</em></h2>
             <p className="lead-copy">Share your details and our project advisor will call to confirm a convenient time. Visits are available every day from 9:00 AM to 6:00 PM.</p>
-            <div className="advisor-contact"><i className="bi bi-whatsapp" /><span><small>PREFER WHATSAPP?</small><strong>+91 98400 12345</strong></span><a href={`https://wa.me/919840012345?text=${whatsappText}`} target="_blank" rel="noreferrer">Start chat</a></div>
+            <div className="advisor-contact"><i className="bi bi-chat-dots" /><span><small>NEED MORE INFORMATION?</small><strong>Speak with our property advisors</strong></span><Link href="/contact">Contact us</Link></div>
           </div>
           <div className="col-lg-6 offset-lg-1"><div className="enquiry-card"><h5>Book your visit</h5><p>Our advisor will confirm your appointment shortly.</p><LeadForm property={enquiryUnit} defaultInterest="site-visit" showDate compact /></div></div>
         </div></div>
       </section>}
 
-      <a href={`https://wa.me/919840012345?text=${whatsappText}`} className="whatsapp-float" target="_blank" rel="noreferrer" aria-label="Chat with Aurelia Greens on WhatsApp"><i className="bi bi-whatsapp" /><span>Chat with us</span></a>
+      <Link href="/contact" className="whatsapp-float" aria-label="Contact Vetrivelan Realty"><i className="bi bi-chat-dots-fill" /><span>Contact us</span></Link>
     </>
   );
 }

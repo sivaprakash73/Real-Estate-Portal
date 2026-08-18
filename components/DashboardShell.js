@@ -8,6 +8,7 @@ const NAV = [
   { key: 'leads', label: 'Enquiries', href: '/dashboard/leads', icon: 'chat-square-text' },
   { key: 'team', label: 'Sales team', href: '/dashboard/team', icon: 'people' },
   { key: 'reports', label: 'Reports', href: '/dashboard/reports', icon: 'bar-chart-line' },
+  { key: 'backup', label: 'Backup & restore', href: '/dashboard/backup', icon: 'database-down' },
 ];
 
 export default function DashboardShell({ active, children }) {
@@ -21,12 +22,12 @@ export default function DashboardShell({ active, children }) {
 
   return (
     <>
-      <Head><title>Admin dashboard | Aurelia Greens</title></Head>
+      <Head><title>Admin dashboard | Vetrivelan Realty</title></Head>
       <div className="admin-shell">
         <aside className="admin-sidebar">
           <Link href="/" className="admin-brand text-decoration-none">
             <span className="admin-brand-mark"><i className="bi bi-tree" /></span>
-            <span><strong>Aurelia</strong><small>PROJECT ADMIN</small></span>
+            <span><strong>Vetrivelan</strong><small>REALTY ADMIN</small></span>
           </Link>
 
           <nav className="admin-nav" aria-label="Admin navigation">
@@ -52,7 +53,7 @@ export default function DashboardShell({ active, children }) {
         <main className="admin-main">
           <header className="admin-topbar">
             <div>
-              <span className="text-secondary small">Aurelia Greens</span>
+              <span className="text-secondary small">Vetrivelan Realty</span>
               <h1>{NAV.find((item) => item.key === active)?.label || 'Dashboard'}</h1>
             </div>
             <div className="d-flex align-items-center gap-2">

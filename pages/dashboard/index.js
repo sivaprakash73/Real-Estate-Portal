@@ -32,7 +32,7 @@ function Overview({ agents }) {
 
   return <>
     <div className="dashboard-greeting d-flex flex-wrap justify-content-between align-items-end gap-2 mb-4">
-      <div><h2 className="h3 mb-1">Good morning, Arjun.</h2><p className="text-secondary mb-0 small">Here&apos;s what&apos;s happening across Aurelia Greens today.</p></div>
+      <div><h2 className="h3 mb-1">Good morning.</h2><p className="text-secondary mb-0 small">Here&apos;s what&apos;s happening across Vetrivelan Realty today.</p></div>
       <span className="small text-secondary"><i className="bi bi-calendar3 me-2" />14 August 2026</span>
     </div>
     <div className="row g-3">

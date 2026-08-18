@@ -1,6 +1,6 @@
-# PrimeNest — Real Estate Portal
+# Vetrivelan Realty — Real Estate Portal
 
-A full-featured real estate portal built with **Next.js 14 (pages router)** and **Bootstrap 5**.
+A real-estate portal built with **Next.js 14 (pages router)** and **Bootstrap 5**.
 
 ## Features
 
@@ -31,6 +31,17 @@ so the JSON store can be swapped for MySQL / Cloudflare D1 without touching the
 API routes.
 
 To reset the demo data, delete the `data/` folder and restart the dev server.
+
+## Backup and restore
+
+Open **Admin dashboard → Backup & restore** to download a JSON snapshot. It
+contains every property listing, enquiry and agent record. To restore one,
+select a previously downloaded JSON file and confirm the warning; restoring
+replaces the current local data.
+
+The dashboard in this repository is a demo and has no sign-in. Before making
+the site public, add authentication and restrict both `/dashboard` and
+`/api/backup` to administrators.
 
 ## Structure
 

@@ -167,7 +167,7 @@ export default function PropertyDetail({ property: p, agent, similar }) {
                       {agent.phone}
                     </a>
                     <a
-                      href={`https://wa.me/${agent.phone.replace(/\D/g, '')}?text=${encodeURIComponent(`Hello, I am interested in ${unitCode(p)} at Aurelia Greens.`)}`}
+                      href={`https://wa.me/${agent.phone.replace(/\D/g, '')}?text=${encodeURIComponent(`Hello, I am interested in ${unitCode(p)} at Vetrivelan Realty.`)}`}
                       target="_blank"
                       rel="noreferrer"
                       className="btn btn-success btn-sm"

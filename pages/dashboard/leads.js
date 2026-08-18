@@ -69,7 +69,7 @@ function Leads({ agents }) {
     await fetch(`/api/leads/${lead.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ agentId: Number(agentId) }),
+      body: JSON.stringify({ agentId: agentId ? Number(agentId) : null }),
     });
     setBusyId(null);
     load();
@@ -188,6 +188,7 @@ function Leads({ agents }) {
                             onChange={(e) => assign(lead, e.target.value)}
                             aria-label={`Sales owner for ${lead.name}`}
                           >
+                            <option value="">Unassigned</option>
                             {agents.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
                           </select>
                         </td>

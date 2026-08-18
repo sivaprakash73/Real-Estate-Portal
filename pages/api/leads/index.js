@@ -8,18 +8,18 @@ export default function handler(req, res) {
 
   if (req.method === 'POST') {
     const { name, phone, propertyId } = req.body || {};
-    if (!name || !phone || !propertyId) {
+    if (!name || !phone) {
       return res
         .status(400)
-        .json({ error: 'name, phone and propertyId are required' });
+        .json({ error: 'name and phone are required' });
     }
-    const property = getProperty(propertyId);
-    if (!property) return res.status(404).json({ error: 'Property not found' });
+    const property = propertyId ? getProperty(propertyId) : null;
+    if (propertyId && !property) return res.status(404).json({ error: 'Property not found' });
 
     const lead = createLead({
       ...req.body,
-      propertyId: Number(propertyId),
-      agentId: property.agentId,
+      propertyId: property ? Number(propertyId) : null,
+      agentId: property ? property.agentId : null,
     });
     return res.status(201).json({ lead });
   }
