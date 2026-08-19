@@ -1,7 +1,7 @@
 import { createBackup, restoreBackup } from '@/lib/store';
 
 // This route must be protected by real authentication before a public
-// deployment. The current project dashboard is a local/demo admin area.
+// deployment.
 export default function handler(req, res) {
   if (req.method === 'GET') {
     const backup = createBackup();
